@@ -1,39 +1,23 @@
 server:
-  port: 8092
+  port: ${CURSO_PORT:8092}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/BD_CURSO
-    username: postgres
-    password: admin
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        default_schema: sys
-        
-# Eureka Discovery Client
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/BD_CURSO
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:admin}
 
-eureka:
-   client:
-      fetch-registry: true
-      serviceUrl:
-         defaultZone: http://localhost:8889/eureka
-         
-#Metrics related configurations
-management:
-  endpoint:
-    metrics:
-      enabled: true
-    prometheus:
-      enabled: true
-    gateway:
-      enabled: true   
-  endpoints:
-      web:
-        exposure:
-          include: "*"
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+gestion:
+  curso:
+    max-creditos: 5                 
+    alerta-credito-alto: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${CURSO_DB_URL}
+    username: ${CURSO_DB_USER}
+    password: ${CURSO_DB_PASSWORD}

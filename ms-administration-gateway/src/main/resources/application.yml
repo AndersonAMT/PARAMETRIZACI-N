@@ -1,7 +1,10 @@
-
+# Identidad del servicio y direccion del Config Server.
+# El nombre DEBE coincidir con el archivo ms-administration-gateway.yml del repositorio.
 spring:
   application:
     name: ms-administration-gateway
-  
+
   config:
-    import: optional:configserver:http://localhost:8890
+    # optional: permite arrancar si el Config Server no responde (solo en desarrollo).
+    # CONFIG_SERVER_URL permite apuntar a otro host sin recompilar (Docker, K8s, etc.).
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8890}

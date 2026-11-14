@@ -1,12 +1,18 @@
 server:
-  port: 8889
+  # El puerto del registro tambien es parametro: EUREKA_PORT
+  port: ${EUREKA_PORT:8889}
 
 eureka:
-   instance:
-      hostname: localhost
-   client:
-        register-with-eureka: false
-        fetch-registry: false
-        serviceUrl:
-           defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
-   wait-time-in-ms-when-sync-empty: 0
+  instance:
+    # Nombre con el que Eureka se anuncia a si mismo (util en Docker/K8s).
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    # El servidor de registro no se registra ni se consulta a si mismo.
+    # (Tiene prioridad sobre application.yml: lo especifico gana a lo general.)
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+  server:
+    # En Spring Boot 3 esta propiedad cuelga de eureka.server, no de la raiz.
+    wait-time-in-ms-when-sync-empty: 0

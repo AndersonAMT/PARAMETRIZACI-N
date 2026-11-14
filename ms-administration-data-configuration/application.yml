@@ -1,0 +1,68 @@
+# =============================================================================
+# Configuracion COMPARTIDA por todos los clientes del Config Server.
+# Prioridad (de mayor a menor):
+#   {app}-{perfil}.yml > {app}.yml > application-{perfil}.yml > application.yml
+# Todo valor repetido en los demas archivos esta aqui una sola vez.
+# Los perfiles viven como documentos (---) en ESTE mismo archivo.
+# =============================================================================
+
+eureka:
+  client:
+    fetch-registry: true
+    service-url:
+      # Cambiar Eureka de host/puerto = cambiar una variable, no 7 archivos.
+      defaultZone: ${EUREKA_URL:http://localhost:8889/eureka}
+
+spring:
+  jpa:
+    # Mismo dialecto y schema para todos los servicios de negocio.
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:sys}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo los endpoints necesarios (el "*" expone beans y rutas internas).
+        include: ${ACTUATOR_ENDPOINTS:health,info,refresh,env}
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:always}
+
+---
+# =============================================================================
+# Perfil "dev": comodidad para desarrollo. Se activa con:
+#   $env:SPRING_PROFILES_ACTIVE="dev"
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.homerios: ${LOG_LEVEL_HOMERIOS:DEBUG}
+
+---
+# =============================================================================
+# Perfil "prod": menos superficie expuesta. Se activa con:
+#   $env:SPRING_PROFILES_ACTIVE="prod"
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}

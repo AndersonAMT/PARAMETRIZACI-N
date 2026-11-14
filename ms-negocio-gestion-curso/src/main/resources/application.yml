@@ -1,6 +1,8 @@
+# Identidad del servicio y direccion del Config Server.
+# El nombre DEBE coincidir con el archivo ms-negocio-gestion-curso.yml del repositorio.
 spring:
   application:
     name: ms-negocio-gestion-curso
-  
+
   config:
-    import: optional:configserver:http://localhost:8890
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8890}

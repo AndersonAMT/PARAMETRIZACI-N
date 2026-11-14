@@ -3,6 +3,8 @@ package com.homerios.msnegociogestioncurso.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,13 +15,21 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.homerios.msnegociogestioncurso.config.CursoProperties;
+import com.homerios.msnegociogestioncurso.exception.ReglaNegocioException;
 import com.homerios.msnegociogestioncurso.model.Curso;
 import com.homerios.msnegociogestioncurso.repository.CursoRepository;
 
 @RestController
 public class CursoController {
+
+	private static final Logger log = LoggerFactory.getLogger(CursoController.class);
+
 	@Autowired
 	private CursoRepository cursoRepository;
+
+	@Autowired
+	private CursoProperties cursoProperties;
 
 	@GetMapping("/cursos")
 	public List<Curso> obtenerCursos() {
@@ -34,16 +44,19 @@ public class CursoController {
 
 	@PostMapping("/curso")
 	public Curso crearDocente(@RequestBody Curso nCurso) {
+		validarCreditos(nCurso.getCredito());
+
 		Curso tCurso = new Curso();
 		tCurso.setNombre(nCurso.getNombre());
 		tCurso.setCredito(nCurso.getCredito());
 		tCurso.setId_docente(nCurso.getId_docente());
 
-		return cursoRepository.save(nCurso);
+		return cursoRepository.save(tCurso);
 	}
 
 	@PutMapping("/curso/{id}")
 	public ResponseEntity<Curso> actualizarCurso(@PathVariable("id") Long id, @RequestBody Curso aCurso) {
+		validarCreditos(aCurso.getCredito());
 
 		return cursoRepository.findById(id).map(curso -> {
 			curso.setNombre(aCurso.getNombre());
@@ -54,21 +67,26 @@ public class CursoController {
 		}).orElseGet(() -> ResponseEntity.notFound().build());
 
 	}
-	/*
-	 * @PutMapping("/curso/{id}") public Optional<Curso>
-	 * actualizarCurso(@PathVariable("id") String id, @RequestBody Curso aCurso) {
-	 * Long id_curso = Long.parseLong(id); Optional<Curso> tCurso =
-	 * cursoRepository.findById(id_curso); if (tCurso.isPresent()) { Curso t_curso =
-	 * tCurso.get(); t_curso.setNombre(aCurso.getNombre());
-	 * t_curso.setCredito(aCurso.getCredito());
-	 * t_curso.setId_docente(aCurso.getId_docente()); cursoRepository.save(t_curso);
-	 * } return tCurso; }
-	 */
 
 	@DeleteMapping("/curso/{id}")
 	public boolean deleteCurso(@PathVariable("id") Long id) {
-		Long id_curso = id; // Long.parseLong(id);
-		cursoRepository.deleteById(id_curso);
+		cursoRepository.deleteById(id);
 		return true;
+	}
+
+	/**
+	 * Regla de negocio parametrizada: {@code gestion.curso.max-creditos}.
+	 * Si el curso queda justo en el limite y {@code gestion.curso.alerta-credito-alto} esta activo,
+	 * deja la advertencia en el log.
+	 */
+	private void validarCreditos(int credito) {
+		int maximo = cursoProperties.getMaxCreditos();
+
+		if (credito > maximo) {
+			throw new ReglaNegocioException("Un curso no puede superar " + maximo + " creditos");
+		}
+		if (cursoProperties.isAlertaCreditoAlto() && credito == maximo) {
+			log.warn("Curso en el limite de creditos permitido: {} de {}", credito, maximo);
+		}
 	}
 }

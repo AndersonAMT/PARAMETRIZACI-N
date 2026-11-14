@@ -1,0 +1,15 @@
+package com.homerios.msnegociogestioncurso.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public record ErrorResponse(
+		LocalDateTime timestamp,
+		int status,
+		String mensaje,
+		List<String> detalles) {
+
+	public static ErrorResponse of(int status, String mensaje) {
+		return new ErrorResponse(LocalDateTime.now(), status, mensaje, List.of());
+	}
+}
